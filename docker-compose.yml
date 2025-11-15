@@ -1,0 +1,99 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: molunzaka_app
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - APP_DEBUG=${APP_DEBUG:-true}
+      - APP_KEY=${APP_KEY}
+      - DB_CONNECTION=${DB_CONNECTION:-sqlite}
+      - DB_DATABASE=${DB_DATABASE:-/app/database/database.sqlite}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./:/app
+      - ./storage:/app/storage
+      - ./bootstrap/cache:/app/bootstrap/cache
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - db
+    networks:
+      - molunzaka
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: molunzaka_worker
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - APP_DEBUG=${APP_DEBUG:-true}
+      - APP_KEY=${APP_KEY}
+      - DB_CONNECTION=${DB_CONNECTION:-sqlite}
+      - DB_DATABASE=${DB_DATABASE:-/app/database/database.sqlite}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./:/app
+      - ./storage:/app/storage
+      - ./bootstrap/cache:/app/bootstrap/cache
+    depends_on:
+      - redis
+      - db
+    networks:
+      - molunzaka
+    command: php artisan horizon
+
+  db:
+    image: postgres:16-alpine
+    container_name: molunzaka_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-molunzaka}
+      POSTGRES_USER: ${DB_USERNAME:-molunzaka}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - molunzaka
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-molunzaka}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: molunzaka_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - molunzaka
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+
+networks:
+  molunzaka:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local

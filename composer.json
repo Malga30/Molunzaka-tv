@@ -1,0 +1,65 @@
+{
+    "name": "molunzaka/streaming-platform",
+    "description": "Molunzaka Streaming Platform - HLS Video Streaming with Laravel 11+, FFmpeg, and Redis",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^11.0",
+        "laravel/sanctum": "^4.0",
+        "laravel/horizon": "^5.0",
+        "filament/filament": "^3.0",
+        "spatie/laravel-permission": "^6.0",
+        "guzzlehttp/guzzle": "^7.0",
+        "spatie/laravel-medialibrary": "^10.0",
+        "spatie/laravel-enum": "^3.0",
+        "laravel/tinker": "^2.8"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "laravel/pint": "^1.0",
+        "fakerphp/faker": "^1.9.1",
+        "mockery/mockery": "^1.4",
+        "laravel/sail": "^1.26",
+        "laravel-ide-helper": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ],
+        "test": "phpunit",
+        "test:coverage": "phpunit --coverage-html=coverage",
+        "lint": "pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
